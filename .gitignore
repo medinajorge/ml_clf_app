@@ -9,3 +9,6 @@ __pycache__/
 # Ignore data and figs folder
 data/
 figs/
+
+# ignore models
+src/models/
