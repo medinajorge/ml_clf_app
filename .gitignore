@@ -10,5 +10,7 @@ __pycache__/
 data/
 figs/
 
-# ignore models
-src/models/
+# ignore models and scalers
+src/clf_model/
+src/conf_model/
+src/scalers/
