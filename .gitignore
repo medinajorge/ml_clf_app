@@ -1,0 +1,11 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[codz]
+*$py.class
+
+# ipynb checkpoints
+.ipynb_checkpoints/
+
+# Ignore data and figs folder
+data/
+figs/
