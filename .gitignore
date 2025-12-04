@@ -13,4 +13,4 @@ figs/
 # ignore models and scalers
 src/clf_model/
 src/conf_model/
-src/scalers/
+src/scaler/
