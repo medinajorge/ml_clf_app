@@ -1,3 +1,4 @@
+from . import params
 from . import preprocessing
 from . import clf
 from . import confidence
