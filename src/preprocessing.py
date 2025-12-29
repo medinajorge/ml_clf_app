@@ -104,7 +104,7 @@ def compute_dt(t, year, replace_zero_by="mean"):
         return dt
 
 def undersample_trajectories(df, year, dt_threshold=1/24):
-    print(f"Undersampling trajectories. Keeping observations separated by at least {dt_threshold} days")
+    print(f"Undersampling trajectories. Keeping observations separated by at least {dt_threshold:.6f} days")
 
     is_year_series = isinstance(year, pd.Series)
     if not is_year_series:
@@ -365,6 +365,20 @@ def add_bathymetry_data(Z, X=None):
         Z_new.append(np.vstack([z, bathymetry_x]))
     return Z_new
 
+def add_time_delta(X, Year):
+    print("Computing time delta")
+    X = [np.vstack([x, np.hstack([compute_dt(x[2], y), 0])]) for x, y in zip(X, Year)] # added 0 to be able to concatenate. Later will be removed
+    return X
+
+def preprocess_periodic_vars(X, Year):
+    print("Handling discontinuities:\n\t-(lat, lon) -> (x, y, z)\n\t-day -> (sin, cos)\n\t-hour angle -> (sin, cos)")
+    make_periodic_kwargs = dict(added_dt=True, velocity='norm', to_origin=None, replace_zero_by="mean", diff=False, add_absolute_z=False)
+    X = [make_periodic(x, year, **make_periodic_kwargs) for (x, year) in zip(X, Year)]
+    return X
+
+def transpose_elements(X):
+    return [x.T for x in X]
+
 def check_format(df):
     required_cols = {'DATE_TIME', 'ID', 'LATITUDE', 'LONGITUDE'}
     missing = required_cols - set(df.columns)
@@ -372,7 +386,7 @@ def check_format(df):
         raise ValueError(f"Missing columns: {missing}")
     return
 
-def load_data(path=os.path.join(params.DATA_PATH, 'dataset.csv')):
+def load_data(path=os.path.join(params.DATA_DIR, 'dataset.csv')):
     df = pd.read_csv(path)
     check_format(df)
 
@@ -401,21 +415,26 @@ def load_data(path=os.path.join(params.DATA_PATH, 'dataset.csv')):
     metadata.loc[is_hq.values, 'tracking_quality'] = 'high'
     metadata.loc[~is_hq.values, 'tracking_quality'] = 'low'
 
+    # Discard trajectories with only 1 observation
+    valid = metadata.num_observations > 1
+    num_not_valid = (~valid).sum()
+    if num_not_valid > 0:
+        X = X.loc[valid]
+        Year = Year.loc[valid]
+        metadata = metadata.loc[valid]
+        print(f"Discarded {num_not_valid} trajectories with only 1 observation.")
+
     N = metadata.shape[0]
     print(f"Loaded {N} trajectories")
     print(f"Low tracking quality trajectories: {(~is_hq).values.sum()}/{N}")
     return X, Year, metadata
 
-def preprocess(path=os.path.join(params.DATA_PATH, 'dataset.csv')):
+def preprocess(path=os.path.join(params.DATA_DIR, 'dataset.csv')):
     X, Year, metadata = load_data(path)
 
     X = add_bathymetry_data(X)
-
-    print("Computing time delta")
-    X = [np.vstack([x, np.hstack([compute_dt(x[2], y), 0])]) for x, y in zip(X, Year)] # added 0 to be able to concatenate. Later will be removed
-
-    print("Handling discontinuities:\n\t-(lat, lon) -> (x, y, z)\n\t-day -> (sin, cos)\n\t-hour angle -> (sin, cos)")
-    make_periodic_kwargs = dict(added_dt=True, velocity='norm', to_origin=None, replace_zero_by="mean", diff=False, add_absolute_z=False)
-    X = [make_periodic(x, year, **make_periodic_kwargs) for (x, year) in zip(X, Year)]
+    X = add_time_delta(X, Year)
+    X = preprocess_periodic_vars(X, Year)
+    X = transpose_elements(X)
 
     return X, metadata
