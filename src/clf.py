@@ -173,7 +173,7 @@ class InceptionClassifierEnsemble():
         p = np.stack([m.predict_proba(X) for m in self.models], axis=0) # (num_models, num_samples, num_classes)
         return p
 
-    def predict(self, X):
+    def predict(self, X, return_probs=True):
         """Predict class labels for all ensemble members.
 
         Parameters
@@ -187,4 +187,8 @@ class InceptionClassifierEnsemble():
             Array of shape (M, N), where M=5 is the number of models.
         """
         p = self.predict_proba(X)
-        return p.argmax(axis=2)
+        y = p.argmax(axis=2)
+        if return_probs:
+            return y, p
+        else:
+            return y
