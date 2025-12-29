@@ -426,7 +426,6 @@ def load_data(path=os.path.join(params.DATA_DIR, 'dataset.csv')):
 
     metadata = metadata.reset_index() # index (ID) -> column
     N = metadata.shape[0]
-    print(f"Loaded {N} trajectories")
     print(f"Low tracking quality trajectories: {(~is_hq).values.sum()}/{N}")
     return X, Year, metadata
 

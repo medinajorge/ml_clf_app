@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import mode as ss_mode
 import os
+from typing import Optional, Callable
 
 from . import preprocessing, clf, confidence, params
 
@@ -60,14 +61,26 @@ class SpeciesClassifierPipeline():
         Runs the full pipeline on an input CSV file and returns the output
         DataFrame containing predictions, confidence scores, and metadata.
     """
-    def __init__(self, config: dict):
+    def __init__(self,
+                 config: dict,
+                 progress_callback: Optional[Callable] = None,
+                 ):
         self.config = config
+        self.progress_callback = progress_callback
+
         self.clf_model = clf.InceptionClassifierEnsemble()
         self.conf_model = confidence.XGBEnsemble(use_entropy=config['use_entropy'])
 
         self.c_min = config['c_min']
         self.ensemble_threshold = config['ensemble_threshold']
         self.overwrite = config['overwrite']
+
+    def _update_progress(self, message: str, percentage: int):
+        """Call progress callback if provided."""
+        if self.progress_callback:
+            self.progress_callback(message, percentage)
+        else:
+            print(f"[{percentage}%] {message}")
 
     def compute_ensemble_pred(self, y_pred, valid):
         """
@@ -146,19 +159,23 @@ class SpeciesClassifierPipeline():
             print(f"Output file {output_path} already exists. Loading...")
             output = pd.read_csv(output_path)
         else:
+            self._update_progress(f"Loading CSV file...", 0)
             X, metadata = preprocessing.preprocess(input_path)
+            N = metadata.shape[0]
+            self._update_progress(f"Loaded {N} trajectories", 20)
 
-            print("Predicting species...")
+
+            self._update_progress("Predicting species...", 40)
             y, p = self.clf_model.predict(X)
             df_y = pd.DataFrame(y.T, index=metadata.index, columns=[f'species_predicted_fold_{i+1}' for i in range(5)])
             df_y = df_y.replace(params.CATEGORY_TO_SPECIES)
 
-            print("Predicting confidence scores...")
+            self._update_progress("Predicting confidence scores...", 90)
             c = self.conf_model.predict(p) # (5, N)
             df_c = pd.DataFrame(c.T, index=metadata.index, columns=[f'confidence_fold_{i+1}' for i in range(5)])
 
             # Record predictions for specified minimum confidence
-            print(f"Computing ensemble predictions for minimum confidence: c_min={self.c_min:.4f}")
+            self._update_progress(f"Computing ensemble predictions for minimum confidence: c_min={self.c_min:.4f}", 95)
             valid = c >= self.c_min
             y_ensemble, abstained_ensemble = self.compute_ensemble_pred(y, valid)
             y_ensemble_labels = pd.Series(y_ensemble).map(params.CATEGORY_TO_SPECIES).values
@@ -167,6 +184,8 @@ class SpeciesClassifierPipeline():
 
             output = pd.concat([metadata, df_y, df_c, df_ensemble], axis=1)
 
-            print(f"Saving output to {output_path}...")
+            self._update_progress(f"Saving output to {output_path}...", 98)
             output.to_csv(output_path, index=False)
+            self._update_progress("Classification complete!", 100)
+
         return output
