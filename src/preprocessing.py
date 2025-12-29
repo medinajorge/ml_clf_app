@@ -396,8 +396,8 @@ def load_data(path=os.path.join(params.DATA_DIR, 'dataset.csv')):
     df['day'] = (dt.dayofyear + dt.hour / 24 + dt.minute / (24 * 60) + dt.second / (24 * 60 * 60)) - 1
 
     # get trajectories and year
-    X = df.groupby("ID").apply(lambda x: x[['LATITUDE', 'LONGITUDE', 'day']].values.T)
-    Year = df.groupby("ID").apply(lambda x: x.year.values)
+    X = df.groupby("ID").apply(lambda x: x.sort_values('DATE_TIME')[['LATITUDE', 'LONGITUDE', 'day']].values.T)
+    Year = df.groupby("ID").apply(lambda x: x.sort_values('DATE_TIME').year.values)
     Year = Year.loc[X.index]
 
     min_dt = 0.25/24
@@ -424,6 +424,7 @@ def load_data(path=os.path.join(params.DATA_DIR, 'dataset.csv')):
         metadata = metadata.loc[valid]
         print(f"Discarded {num_not_valid} trajectories with only 1 observation.")
 
+    metadata = metadata.reset_index() # index (ID) -> column
     N = metadata.shape[0]
     print(f"Loaded {N} trajectories")
     print(f"Low tracking quality trajectories: {(~is_hq).values.sum()}/{N}")
