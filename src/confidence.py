@@ -87,7 +87,7 @@ class XGB():
 
         Returns
         -------
-        y : np.ndarray
+        c : np.ndarray
             Array of shape (N,).
         """
         dtest = self.preprocess(p)
@@ -118,7 +118,7 @@ class XGBEnsemble():
 
         Returns
         -------
-        y : np.ndarray
+        c : np.ndarray
             Array of shape (M, N)
         """
         return np.stack([m.predict(p[i]) for i, m in enumerate(self.models)], axis=0)
