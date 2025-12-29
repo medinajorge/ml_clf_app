@@ -331,7 +331,7 @@ def make_periodic(z, year, added_dt=False, to_origin=None, velocity='norm', repl
                                        ])
             else:
                 periodic_x = periodic_x[:,:-1]
-    return periodic_x, year[:periodic_x.shape[1]]
+    return periodic_x
 
 def add_bathymetry_data(Z, X=None):
     print("Adding bathymetry data")
@@ -416,6 +416,6 @@ def preprocess(path=os.path.join(params.DATA_PATH, 'dataset.csv')):
 
     print("Handling discontinuities:\n\t-(lat, lon) -> (x, y, z)\n\t-day -> (sin, cos)\n\t-hour angle -> (sin, cos)")
     make_periodic_kwargs = dict(added_dt=True, velocity='norm', to_origin=None, replace_zero_by="mean", diff=False, add_absolute_z=False)
-    X, Year = zip(*[make_periodic(x, year, **make_periodic_kwargs) for (x, year) in zip(X, Year)])
+    X = [make_periodic(x, year, **make_periodic_kwargs) for (x, year) in zip(X, Year)]
 
-    return X, Year, metadata
+    return X, metadata
