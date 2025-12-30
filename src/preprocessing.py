@@ -5,6 +5,7 @@ from numba import njit
 import calendar
 from copy import deepcopy
 from pvlib import solarposition
+from typing import Optional, Callable, List
 
 from phdu import pd_utils
 
@@ -429,12 +430,29 @@ def load_data(path=os.path.join(params.DATA_DIR, 'dataset.csv')):
     print(f"Low tracking quality trajectories: {(~is_hq).values.sum()}/{N}")
     return X, Year, metadata
 
-def preprocess(path=os.path.join(params.DATA_DIR, 'dataset.csv')):
+def preprocess(path=os.path.join(params.DATA_DIR, 'dataset.csv'),
+               progress_callback: Optional[Callable] = None,
+               percentages: List = [0, 5, 10, 20],
+               ):
+    assert len(percentages) == 4, "len(percentages) must be 4"
+
+    if progress_callback is not None:
+        progress_callback("Preprocessing CSV file...\nLoading data", percentages[0])
     X, Year, metadata = load_data(path)
 
+    if progress_callback is not None:
+        progress_callback("Preprocessing CSV file...\nAdding bathymetry data", percentages[1])
     X = add_bathymetry_data(X)
+
+    if progress_callback is not None:
+        progress_callback("Preprocessing CSV file...\nAdding time delta between observations", percentages[2])
     X = add_time_delta(X, Year)
+
+    if progress_callback is not None:
+        progress_callback("Preprocessing CSV file...\nHandling discontinuities:\n\t-(lat, lon) -> (x, y, z)\n\t-day -> (sin, cos)\n\t-hour angle -> (sin, cos)",
+                          percentages[3])
     X = preprocess_periodic_vars(X, Year)
+
     X = transpose_elements(X)
 
     return X, metadata

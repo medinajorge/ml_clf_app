@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 import ttkbootstrap as ttkb
 from ttkbootstrap.constants import *
+from PIL import Image, ImageTk
 import threading
 import yaml
 from pathlib import Path
@@ -125,6 +126,17 @@ class DeepTrajectoryClassifierApp:
         header_frame = ttk.Frame(parent)
         header_frame.grid(row=0, column=0, sticky=(tk.W, tk.E), pady=(0, 20))
 
+        # Author
+        header_frame.columnconfigure(2, weight=1)
+
+        author_label = ttk.Label(
+            header_frame,
+            text="© 2025 Jorge Medina Hernández",
+            style='Info.TLabel',
+            bootstyle="secondary",
+        )
+        author_label.grid(row=0, column=2, sticky=tk.E)
+
         # Title
         title_label = ttk.Label(
             header_frame,
@@ -161,7 +173,7 @@ class DeepTrajectoryClassifierApp:
         # Status label
         self.model_status_label = ttk.Label(
             status_frame,
-            text="⏳ Loading models...",
+            text="Loading models...",
             style='Info.TLabel'
         )
         self.model_status_label.grid(row=0, column=0, columnspan=2, sticky=tk.W)
@@ -199,9 +211,15 @@ class DeepTrajectoryClassifierApp:
         self.input_entry.grid(row=0, column=1, sticky=(tk.W, tk.E), padx=(0, 10))
 
         # Add data button
+        directory_img = Image.open('assets/directory-icon.png')
+        directory_img = directory_img.resize((20, 20), Image.LANCZOS)
+        self._directory_icon = ImageTk.PhotoImage(directory_img)
+
         self.add_data_btn = ttk.Button(
             input_frame,
-            text="📁 Add Data",
+            text=' Add Data',
+            image=self._directory_icon,
+            compound='left',
             command=self._browse_input_file,
             bootstyle="primary",
             width=15
@@ -321,12 +339,12 @@ class DeepTrajectoryClassifierApp:
 
     def _update_model_status(self, message: str, percentage: int):
         """Update model status label (main thread only)."""
-        self.model_status_label.config(text=f"⏳ {message} ({percentage}%)")
+        self.model_status_label.config(text=f"{message} ({percentage}%)")
 
     def _on_models_loaded(self):
         """Called when models are successfully loaded."""
         # Update status
-        self.model_status_label.config(text="✅ Models loaded successfully")
+        self.model_status_label.config(text="Models loaded successfully")
 
         # Get model info
         info = self.pipeline.get_model_info()
@@ -448,7 +466,16 @@ class DeepTrajectoryClassifierApp:
         # Reset progress
         self.progress_bar['value'] = 100
         self.progress_percentage.config(text="100%")
-        self.progress_label.config(text="✅ Classification complete!")
+
+        check_img = Image.open("assets/check-icon.png")
+        check_img = check_img.resize((20, 20), Image.LANCZOS)
+        self._check_img = ImageTk.PhotoImage(check_img)
+
+        self.progress_label.config(
+            image=self._check_img,
+            text=" Classification complete!",
+            compound='left',
+        )
 
         # Show success message
         messagebox.showinfo(

@@ -3,6 +3,7 @@ import tensorflow as tf
 import json
 from sklearn.preprocessing import StandardScaler
 import os
+from typing import List, Optional, Callable
 
 from . import params, clf_utils
 
@@ -149,20 +150,34 @@ class InceptionClassifierEnsemble():
     """
     Ensemble of species classifiers based on the Inception architecture.
     """
-    def __init__(self):
+    def __init__(self,
+                 progress_callback: Optional[Callable] = None,
+                 percentages: List = [30, 45, 60, 75, 90],
+                 ):
         """Initialize an ensemble of classifiers across folds.
+
+        Parameters
+        ----------
+        progress_callback : Callable
+            Function to call with progress updates.
+        percentages : List
+            List of percentages to update the progress callback
 
         Attributes
         ----------
         models : list of InceptionClassifier
             One model per fold.
         """
+        self.progress_callback = progress_callback
+        self.percentages = percentages
+        assert len(percentages) == 5, "len(percentages) must be 5 (one per fold model)"
+
         models = []
         for fold in range(5):
             models.append(InceptionClassifier(fold))
         self.models = models
 
-    def predict_proba(self, X):
+    def predict_proba(self, X: List):
         """Predict class probabilities for all ensemble members.
 
         Parameters
@@ -175,7 +190,12 @@ class InceptionClassifierEnsemble():
         p : np.ndarray
             Array of shape (M, N, C), where M=5 is the number of models.
         """
-        p = np.stack([m.predict_proba(X) for m in self.models], axis=0) # (num_models, num_samples, num_classes)
+        p = []
+        for i, m in enumerate(self.models):
+            if self.progress_callback is not None:
+                self.progress_callback(f"Predicting species...\nModel {i+1}/5", self.percentages[i])
+            p.append(m.predict_proba(X))
+        p = np.stack(p, axis=0) # (num_models, num_samples, num_classes)
         return p
 
     def predict(self, X, return_probs=True):

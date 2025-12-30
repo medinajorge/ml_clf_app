@@ -68,7 +68,7 @@ class SpeciesClassifierPipeline():
         self.config = config
         self.progress_callback = progress_callback
 
-        self.clf_model = clf.InceptionClassifierEnsemble()
+        self.clf_model = clf.InceptionClassifierEnsemble(progress_callback=self.progress_callback, percentages=[30, 45, 60, 75, 90])
         self.conf_model = confidence.XGBEnsemble(use_entropy=config['use_entropy'])
 
         self.c_min = config['c_min']
@@ -167,13 +167,11 @@ class SpeciesClassifierPipeline():
             print(f"Output file {output_path} already exists. Loading...")
             output = pd.read_csv(output_path)
         else:
-            self._update_progress(f"Loading CSV file...", 0)
-            X, metadata = preprocessing.preprocess(input_path)
-            N = metadata.shape[0]
-            self._update_progress(f"Loaded {N} trajectories", 20)
-
-
-            self._update_progress("Predicting species...", 40)
+            self._update_progress("Preprocessing CSV file...", 0)
+            X, metadata = preprocessing.preprocess(input_path,
+                                                   progress_callback=self.progress_callback,
+                                                   percentages=[0, 5, 10, 20],
+                                                   )
             y, p = self.clf_model.predict(X)
             df_y = pd.DataFrame(y.T, index=metadata.index, columns=[f'species_predicted_fold_{i+1}' for i in range(5)])
             df_y = df_y.replace(params.CATEGORY_TO_SPECIES)
