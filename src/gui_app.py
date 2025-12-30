@@ -7,8 +7,28 @@ import yaml
 from pathlib import Path
 import traceback
 from typing import Optional
+import mmap
+import csv
 
 from .pipeline import SpeciesClassifierPipeline
+
+def csv_shape_mmap(filepath, has_header=True):
+    with open(filepath, "r", encoding="utf-8", newline="") as f:
+        # Get column count from header
+        reader = csv.reader(f)
+        header = next(reader)
+        n_cols = len(header)
+
+        # Memory-map the file to count lines
+        f.seek(0)
+        with mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
+            n_rows = mm.read().count(b'\n')
+
+    if has_header:
+        n_rows -= 1
+
+    return n_rows, n_cols
+
 
 class DeepTrajectoryClassifierApp:
     def __init__(self, root):
@@ -58,7 +78,7 @@ class DeepTrajectoryClassifierApp:
             self.config = dict(use_entropy = True,
                                c_min = 0.96,
                                ensemble_threshold = 0.5,
-                               overwrite = False)
+                               overwrite = True)
 
 
     def _setup_styles(self):
@@ -108,7 +128,7 @@ class DeepTrajectoryClassifierApp:
         # Title
         title_label = ttk.Label(
             header_frame,
-            text="🚀 Deep Trajectory Classifier",
+            text="Deep Marine Species Classifier",
             style='Title.TLabel',
             bootstyle="primary"
         )
@@ -243,7 +263,7 @@ class DeepTrajectoryClassifierApp:
         # Classify button (large and prominent)
         self.classify_btn = ttk.Button(
             button_frame,
-            text="⚡ Classify Trajectories",
+            text="Classify Trajectories",
             command=self._classify_data,
             style='Action.TButton',
             bootstyle="success",
@@ -255,7 +275,7 @@ class DeepTrajectoryClassifierApp:
         # Clear button
         self.clear_btn = ttk.Button(
             button_frame,
-            text="🔄 Clear",
+            text="Clear",
             command=self._clear_data,
             bootstyle="warning-outline",
             width=15
@@ -281,7 +301,7 @@ class DeepTrajectoryClassifierApp:
             try:
                 self.pipeline = SpeciesClassifierPipeline(
                     self.config,
-                    progress_callback=self._update_model_loading_progress
+                    progress_callback=self._update_classification_progress
                 )
 
                 # Update UI on main thread
@@ -354,13 +374,10 @@ class DeepTrajectoryClassifierApp:
     def _update_file_info(self, filepath: str):
         """Display information about selected file."""
         try:
-            import pandas as pd
-            df = pd.read_csv(filepath)
-            num_rows = len(df)
-            num_cols = len(df.columns)
+            num_rows, num_cols = csv_shape_mmap(filepath)
 
             self.file_info_label.config(
-                text=f"📊 {num_rows:,} rows × {num_cols} columns"
+                text=f"{num_rows:,} rows × {num_cols} columns"
             )
         except Exception as e:
             self.file_info_label.config(text=f"⚠️ Could not read file: {str(e)}")
@@ -400,12 +417,11 @@ class DeepTrajectoryClassifierApp:
         )
         thread.start()
 
-    def _run_classification(self, input_path: str):
+    def _run_classification(self, input_path: str, output_path: str):
         """Run classification in background thread."""
         try:
             # Process with progress updates
-            result_df = self.pipeline.process_csv(input_path)
-            output_path = input_path.replace('.csv', '_output.csv')
+            result_df = self.pipeline.process_csv(input_path, output_path)
 
             # Success callback on main thread
             self.root.after(0, lambda: self._on_classification_complete(output_path, len(result_df)))
@@ -438,11 +454,11 @@ class DeepTrajectoryClassifierApp:
         messagebox.showinfo(
             "Success",
             f"Classification completed successfully!\n\n"
-            f"Processed: {num_rows:,} rows\n"
+            f"Processed: {num_rows:,} trajectories\n"
             f"Output saved to:\n{output_path}"
         )
 
-        self._set_status(f"Completed: {num_rows:,} rows classified")
+        self._set_status(f"Completed: {num_rows:,} species classified")
 
     def _on_classification_failed(self, error_msg: str):
         """Called when classification fails."""

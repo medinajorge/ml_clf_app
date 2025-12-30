@@ -4,7 +4,7 @@ import json
 from sklearn.preprocessing import StandardScaler
 import os
 
-from . import params
+from . import params, clf_utils
 
 
 class InceptionClassifier():
@@ -44,7 +44,12 @@ class InceptionClassifier():
         """Load the trained Inception-based Keras model for the given fold."""
         model_path = os.path.join(params.CLF_MODEL_DIR,
                                   f'clf-inception_fold-test-None_fold-val-{self.fold}_n-splits-val-5_random-state-0.keras')
-        self.model = tf.keras.models.load_model(model_path)
+        self.model = tf.keras.models.load_model(
+            model_path,
+            custom_objects={'FocalLoss': clf_utils.FocalLoss,
+                            'MacroCrossEntropyMetric': clf_utils.MacroCrossEntropyMetric,
+                            }
+        )
         return
 
     def scale(self, X):

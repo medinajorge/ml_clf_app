@@ -132,7 +132,7 @@ class SpeciesClassifierPipeline():
         abstained_ensemble = ~valid_ensemble
         return y_pred_ensemble, abstained_ensemble
 
-    def process_csv(self, input_path: str):
+    def process_csv(self, input_path: str, output_path: Optional[str] = None):
         """
         Run the full species classification pipeline on an input CSV file.
 
@@ -160,7 +160,9 @@ class SpeciesClassifierPipeline():
             DataFrame containing metadata, per-fold predictions, confidence scores,
             and final ensemble predictions.
         """
-        output_path = input_path.replace('.csv', '_output.csv')
+        if output_path is None:
+            output_path = input_path.replace('.csv', '_classified.csv')
+
         if os.path.exists(output_path) and not self.overwrite:
             print(f"Output file {output_path} already exists. Loading...")
             output = pd.read_csv(output_path)
