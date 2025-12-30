@@ -82,6 +82,12 @@ class SpeciesClassifierPipeline():
         else:
             print(f"[{percentage}%] {message}")
 
+    def get_model_info(self):
+        return {
+            'num_classes': len(params.CATEGORY_TO_SPECIES),
+            'num_features': len(params.FEATURES),
+        }
+
     def compute_ensemble_pred(self, y_pred, valid):
         """
         Compute ensemble species predictions using confidence-filtered majority voting.

@@ -39,24 +39,27 @@ class DeepTrajectoryClassifierApp:
 
     def _load_config(self):
         """Load configuration file."""
-        try:
-            config_path = Path('config.yaml')
-            if not config_path.exists():
+        config_path = Path('config.yaml')
+        if config_path.exists():
+            try:
+                with open(config_path, 'r') as f:
+                    self.config = yaml.safe_load(f)
+            except Exception as e:
                 messagebox.showerror(
                     "Configuration Error",
-                    "config.yaml not found. Please ensure the configuration file exists."
+                    f"Failed to load configuration:\n{str(e)}"
                 )
                 self.root.quit()
-                return
-
-            with open(config_path, 'r') as f:
-                self.config = yaml.safe_load(f)
-        except Exception as e:
-            messagebox.showerror(
+        else:
+            messagebox.showwarning(
                 "Configuration Error",
-                f"Failed to load configuration:\n{str(e)}"
+                "config.yaml not found. Loading default configuration."
             )
-            self.root.quit()
+            self.config = dict(use_entropy = True,
+                               c_min = 0.96,
+                               ensemble_threshold = 0.5,
+                               overwrite = False)
+
 
     def _setup_styles(self):
         """Configure custom styles."""
