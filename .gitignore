@@ -3,6 +3,9 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Jupynium files
+*.ju.py
+
 # ipynb checkpoints
 .ipynb_checkpoints/
 

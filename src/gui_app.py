@@ -65,6 +65,7 @@ class DeepTrajectoryClassifierApp:
         # Setup GUI
         self._setup_styles()
         self._create_widgets()
+        self._create_menu_bar()
 
         # Load models on startup (in background)
         self._load_models_background()
@@ -164,6 +165,237 @@ class DeepTrajectoryClassifierApp:
 
         # --- STATUS BAR ---
         self._create_status_bar(main_frame)
+
+    def _create_about_section(self):
+        """Create and display About/Documentation window."""
+        about_window = tk.Toplevel(self.root)
+        about_window.title("About - Deep Marine Species Classifier")
+        about_window.geometry("700x600")
+        about_window.resizable(True, True)
+
+        # Set window icon (same as main window)
+        icon_path = Path('assets/dmsc_v1.png')
+        icon_img = Image.open(icon_path)
+        self._icon_photo = ImageTk.PhotoImage(icon_img)
+        about_window.iconphoto(True, self._icon_photo)
+
+        # Main frame with padding
+        main_frame = ttk.Frame(about_window, padding="20")
+        main_frame.pack(fill=tk.BOTH, expand=True)
+
+        # Header
+        header_frame = ttk.Frame(main_frame)
+        header_frame.pack(fill=tk.X, pady=(0, 20))
+
+        ttk.Label(
+            header_frame,
+            text="Deep Marine Species Classifier",
+            style='Title.TLabel',
+            bootstyle="primary"
+        ).pack(anchor=tk.W)
+
+        ttk.Label(
+            header_frame,
+            text="Version 1.0",
+            style='Info.TLabel',
+            bootstyle="secondary"
+        ).pack(anchor=tk.W, pady=(5, 0))
+
+        ttk.Separator(main_frame, orient='horizontal').pack(fill=tk.X, pady=(0, 15))
+
+        # Scrollable text area for documentation
+        text_frame = ttk.Frame(main_frame)
+        text_frame.pack(fill=tk.BOTH, expand=True)
+
+        # Scrollbar
+        scrollbar = ttk.Scrollbar(text_frame)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        # Text widget
+        text_widget = tk.Text(
+            text_frame,
+            wrap=tk.WORD,
+            yscrollcommand=scrollbar.set,
+            font=('Helvetica', 10),
+            padx=10,
+            pady=10
+        )
+        text_widget.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.config(command=text_widget.yview)
+
+        # Documentation content
+        documentation = """OVERVIEW
+========
+Deep Marine Species Classifier (DMSC) is a machine learning application designed to classify satellite data from marine animal species using deep learning models with confidence-based abstention.
+
+
+HOW TO USE
+==========
+1. Wait for models to load (displayed in Model Status section)
+2. Click "Add Data" to select your input CSV file
+3. (Optional) Adjust configuration parameters, and click "Apply Configuration".
+4. Click "Classify Trajectories" to begin processing
+5. Choose a location to save the output file
+6. Wait for processing to complete
+
+
+CONFIGURATION OPTIONS
+=====================
+Use entropy:
+    Enable or disable using entropy as a feature for confidence calculations.
+    - Yes: Use entropy, along with class (species) probabilities as features for the confidence model (recommended)
+    - No: Use only the species probabilities as features for the confidence model.
+
+Minimum confidence:
+    The minimum confidence threshold for accepting a classification for each deep learning model.
+    Below the threshold, the sample is marked as "abstained".
+    Default: 0.96
+    Range: 0.0 to 1.0
+
+Minimum predictors (quorum):
+    The ensemble aggregates predictions from 5 deep learning models, which can "abstain" based on the minimum confidence.
+    "Quorum" is the minimum number of non-abstaining models, required to make an ensemble prediction.
+
+    If the number of predicting models > quorum, the ensemble predicts the most frequent species across non-abstaining models.
+    Otherwise, it abstains.
+
+    Default: 3
+    Options: [1, 2, 3, 4, 5]
+
+
+INPUT FILE FORMAT
+=================
+The input CSV file should contain satellite tracking data including (at least) the following columns:
+- LATITUDE: The latitude coordinate (degrees) of the animal's position.
+- LONGITUDE: The longitude coordinate (degrees) of the animal's position.
+- DATE_TIME: The date and time of the recorded position.
+- ID: A unique identifier for the time series corresponding to each animal.
+Trajectories with less than 2 observations will not be considered for classification.
+
+
+OUTPUT FILE FORMAT
+==================
+The output CSV will contain the following columns:
+- ID: species identifier
+- num_observations: number of observations in the satellite track
+- num_days: number of days in the satellite track
+- tracking_quality: "high" if it contains at least 50 observations from at least 5 days, "low" otherwise.
+- species_prediction_fold_i: i=1,2,3,4,5. 5 columns containing the predictions of the individual models.
+- confidence_fold_i: i=1,2,3,4,5. 5 columns containing the confidence scores of the individual models.
+- species_predicted: ensemble prediction.
+- abstained:  True/False indicator of whether the ensemble abstained.
+
+
+EXPECTED PERFORMANCE
+===================
+Notation:
+- ID = In-distribution. Species the model has been trained on (see AVAILABLE SPECIES below).
+- OOD = Out-of-distribution. Species the model has not been trained on.
+- HQ = High-quality (trajectory contains at least 50 observations from at least 5 days)
+- LQ = Low-quality (trajectory contains less than 50 observations or less than 5 days)
+- Macro-accuracy: average accuracy across species.
+
+The goal of the classifier is to provide:
+- High accuracy and low abstention rates for ID species.
+- High abstention rates for OOD species, since any classification would be wrong.
+
+Expected performance for the default configuration (use entropy=True, minimum confidence=0.96, quorum=3):
+a) ID data:
+    - Macro-accuracy (HQ):   99.2%   (95% CI: [99.0, 100])
+    - Macro-accuracy (LQ):   97.1%   (95% CI: [87.2, 100])
+    - Abstention rate (HQ):  34.6%   (95% CI: [29.6, 40.7])
+    - Abstention rate (LQ):  94.2%   (95% CI: [88.4, 96.2])
+b) OOD data:
+    - Abstention rate (HQ):  88.8%   (95% CI: [82.9, 94.1])
+    - Abstention rate (LQ):  99.9%   (95% CI: [99.1, 100.0])
+
+NOTE: Higher minimum confidence and quorum will increase the ID accuracy and OOD abstention rates,
+      at the expense of increasing the ID abstention rate.
+
+
+AVAILABLE SPECIES
+===================
+Models can predict across 74 marine animal species distributed as follows:
+- Birds (31):
+    Arctic Herring gull, Ascension frigatebird, Atlantic puffin, Baraus petrel, Black-browed albatross,
+    Black-footed albatross, Bullers albatross, Common eider, Corys shearwater, Great shearwater, Grey-headed albatross,
+    Ivory gull, King eider, Laysan albatross, Manx shearwater, Masked booby, Murphys petrel, Northern fulmar, Northern gannet,
+    Red-tailed tropic bird, Sabines gull, Scopolis shearwater, Short-tailed shearwater, Sooty tern, Streaked shearwater,
+    Thick-billed murre, Trindade petrel, Wandering albatross, Wedge-tailed shearwater, Western gull, White-tailed tropic bird
+- Seals (13):
+    Australian sea lion, California sea lion, Galapagos sea lion, Grey seal, Harbour seal, Leopard seal, Long-nosed fur seal,
+    New Zealand sea lion, Northern elephant seal, Northern fur seal, Ringed seal, Southern elephant seal, Weddell seal
+- Cetaceans (9):
+    Beluga whale, Blue whale, Bowhead whale, Fin whale, Humpback whale, Killer whale, Narwhal,
+    Short-finned pilot whale, Sperm whale
+- Fishes (8):
+    Blue shark, Oceanic whitetip shark, Reef manta ray, Salmon shark, Shortfin mako shark, Tiger shark,
+    Whale shark, White shark
+- Turtles (6): Green turtle, Hawksbill turtle, Kemps Ridley turtle, Leatherback turtle, Loggerhead turtle, Olive Ridley turtle
+- Penguins (5): Adelie penguin, Chinstrap penguin, Emperor penguin, Little penguin, Macaroni penguin
+- Polar bears (1): Polar bear
+- Sirenians (1): Dugong
+
+
+MODEL FEATURES
+===================
+The deep learning models use 10 features from the input data:
+- Cartesian coordinates: (x, y, z)
+- Day of the year: Includes decimal places involving up to seconds. Scaled to [0, 2*pi] and splitted into sine and cosine components.
+- Hour angle: Splitted into sine and cosine components.
+- Bathymetry: Obtained from GEBCO 2022 dataset.
+              Coarse-grained to latitude-longitude cells of width 0.25º to reduce memory and time requirements.
+- Time interval between observations.
+- Velocity between observations.
+
+
+AUTHOR
+======
+© 2025 Jorge Medina Hernández
+
+For support or questions, please refer to the documentation or contact the author: medinahdezjorge@gmail.com
+        """
+
+        text_widget.insert('1.0', documentation)
+        text_widget.config(state='disabled')  # Make read-only
+
+        # Close button
+        button_frame = ttk.Frame(main_frame)
+        button_frame.pack(fill=tk.X, pady=(15, 0))
+
+        ttk.Button(
+            button_frame,
+            text="Close",
+            command=about_window.destroy,
+            bootstyle="secondary",
+            width=15
+        ).pack(side=tk.RIGHT)
+
+    # # Add this to your header section or create a menu bar
+    # def _add_about_button_to_header(self):
+    #     """Add About button to the header (call this in _create_header)."""
+    #     # Add this at the end of _create_header method, before the separator
+    #     about_btn = ttk.Button(
+    #         header_frame,
+    #         text="About",
+    #         command=self._create_about_section,
+    #         bootstyle="info-outline",
+    #         width=10
+    #     )
+    #     about_btn.grid(row=0, column=3, sticky=tk.E, padx=(10, 0))
+
+    # OR create a menu bar (add this to __init__ after _create_widgets())
+    def _create_menu_bar(self):
+        """Create menu bar with Help menu."""
+        menubar = tk.Menu(self.root)
+        self.root.config(menu=menubar)
+
+        # Help menu
+        help_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="Help", menu=help_menu)
+        help_menu.add_command(label="About", command=self._create_about_section)
+        # help_menu.add_separator()
+        # help_menu.add_command(label="Documentation", command=self._create_about_section)
 
     def _create_header(self, parent):
         """Create header section with title."""
