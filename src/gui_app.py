@@ -446,7 +446,7 @@ class DeepTrajectoryClassifierApp:
         """Run classification in background thread."""
         try:
             # Process with progress updates
-            result_df = self.pipeline.process_csv(input_path, output_path)
+            result_df = self.pipeline.process_csv(self.root, self.status_bar_label, input_path, output_path)
 
             # Success callback on main thread
             self.root.after(0, lambda: self._on_classification_complete(output_path, len(result_df)))

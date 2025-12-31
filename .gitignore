@@ -9,6 +9,7 @@ __pycache__/
 # Ignore data and figs folder
 data/
 figs/
+assets/dmsc.png
 
 # ignore models and scalers
 src/clf_model/

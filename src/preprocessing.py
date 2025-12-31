@@ -6,6 +6,7 @@ import calendar
 from copy import deepcopy
 from pvlib import solarposition
 from typing import Optional, Callable, List
+from tkinter import messagebox
 
 from phdu import pd_utils
 
@@ -380,16 +381,20 @@ def preprocess_periodic_vars(X, Year):
 def transpose_elements(X):
     return [x.T for x in X]
 
-def check_format(df):
+def check_format(df, app_root=None):
     required_cols = {'DATE_TIME', 'ID', 'LATITUDE', 'LONGITUDE'}
     missing = required_cols - set(df.columns)
     if len(missing) > 0:
-        raise ValueError(f"Missing columns: {missing}")
+        if app_root is None:
+            raise ValueError(f"Missing columns: {missing}")
+        else:
+            messagebox.showerror("Format Error", f"Missing columns: {missing}")
+            app_root.quit()
     return
 
-def load_data(path=os.path.join(params.DATA_DIR, 'dataset.csv')):
+def load_data(path=os.path.join(params.DATA_DIR, 'dataset.csv'), app_root=None, status_bar=None):
     df = pd.read_csv(path)
-    check_format(df)
+    check_format(df, app_root=app_root)
 
     df['DATE_TIME'] = pd.to_datetime(df['DATE_TIME'])
     dt = df.DATE_TIME.dt
@@ -423,14 +428,22 @@ def load_data(path=os.path.join(params.DATA_DIR, 'dataset.csv')):
         X = X.loc[valid]
         Year = Year.loc[valid]
         metadata = metadata.loc[valid]
-        print(f"Discarded {num_not_valid} trajectories with only 1 observation.")
+        if status_bar is None:
+            print(f"Discarded {num_not_valid} trajectories with only 1 observation.")
+        else:
+            status_bar.config(text=f"Discarded {num_not_valid} trajectories with only 1 observation.")
 
     metadata = metadata.reset_index() # index (ID) -> column
     N = metadata.shape[0]
-    print(f"Low tracking quality trajectories: {(~is_hq).values.sum()}/{N}")
+    if status_bar is None:
+        print(f"Low tracking quality trajectories: {(~is_hq).values.sum()}/{N}")
+    else:
+        status_bar.config(text=f"Low tracking quality trajectories (<5 days or <50 observations): {(~is_hq).values.sum()}/{N}")
     return X, Year, metadata
 
 def preprocess(path=os.path.join(params.DATA_DIR, 'dataset.csv'),
+               app_root=None,
+               status_bar=None,
                progress_callback: Optional[Callable] = None,
                percentages: List = [0, 5, 10, 20],
                ):
@@ -438,7 +451,7 @@ def preprocess(path=os.path.join(params.DATA_DIR, 'dataset.csv'),
 
     if progress_callback is not None:
         progress_callback("Preprocessing CSV file...\nLoading data", percentages[0])
-    X, Year, metadata = load_data(path)
+    X, Year, metadata = load_data(path, app_root=app_root, status_bar=status_bar)
 
     if progress_callback is not None:
         progress_callback("Preprocessing CSV file...\nAdding bathymetry data", percentages[1])

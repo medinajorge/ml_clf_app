@@ -3,6 +3,8 @@ import pandas as pd
 from scipy.stats import mode as ss_mode
 import os
 from typing import Optional, Callable
+from tkinter import ttk
+from ttkbootstrap import Window
 
 from . import preprocessing, clf, confidence, params
 
@@ -132,7 +134,7 @@ class SpeciesClassifierPipeline():
         abstained_ensemble = ~valid_ensemble
         return y_pred_ensemble, abstained_ensemble
 
-    def process_csv(self, input_path: str, output_path: Optional[str] = None):
+    def process_csv(self, app_root:Window, status_bar: ttk.Label, input_path: str, output_path: Optional[str] = None):
         """
         Run the full species classification pipeline on an input CSV file.
 
@@ -151,8 +153,14 @@ class SpeciesClassifierPipeline():
 
         Parameters
         ----------
+        app_root : Window
+            Tkinter root window for displaying error messages.
+        status_bar : ttk.Label
+            Tkinter status bar for updating progress.
         input_path : str
             Path to the input CSV file to be processed.
+        output_path : str, optional
+            Path to the output CSV file. If not provided, a default path is used.
 
         Returns
         -------
@@ -169,6 +177,8 @@ class SpeciesClassifierPipeline():
         else:
             self._update_progress("Preprocessing CSV file...", 0)
             X, metadata = preprocessing.preprocess(input_path,
+                                                   app_root=app_root,
+                                                   status_bar=status_bar,
                                                    progress_callback=self.progress_callback,
                                                    percentages=[0, 5, 10, 20],
                                                    )
