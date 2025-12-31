@@ -30,12 +30,11 @@ def csv_shape_mmap(filepath, has_header=True):
 
     return n_rows, n_cols
 
-
 class DeepTrajectoryClassifierApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Deep Trajectory Classifier v1.0")
-        self.root.geometry("800x600")
+        self.root.geometry("800x650")
         self.root.resizable(True, True)
 
         # Set window icon
@@ -46,7 +45,7 @@ class DeepTrajectoryClassifierApp:
         self.root._icon_photo = icon_photo
 
         # Set minimum window size
-        self.root.minsize(700, 500)
+        self.root.minsize(700, 550)
 
         # Variables
         self.input_file_path = tk.StringVar()
@@ -54,6 +53,11 @@ class DeepTrajectoryClassifierApp:
         self.pipeline: Optional[SpeciesClassifierPipeline] = None
         self.config = None
         self.is_processing = False
+
+        # Configuration variables
+        self.use_entropy_var = tk.StringVar(value="Yes")
+        self.min_confidence_var = tk.StringVar(value="0.96")
+        self.quorum_var = tk.StringVar(value="3")
 
         # Load configuration
         self._load_config()
@@ -65,13 +69,25 @@ class DeepTrajectoryClassifierApp:
         # Load models on startup (in background)
         self._load_models_background()
 
+    def _set_config(self):
+        self.config = {
+            'use_entropy': self.use_entropy_var.get() == "Yes",
+            'c_min': float(self.min_confidence_var.get()),
+            'ensemble_threshold': (int(self.quorum_var.get()) - 1) / 5,
+            'overwrite': True
+        }
+
     def _load_config(self):
         """Load configuration file."""
         config_path = Path('config.yaml')
         if config_path.exists():
             try:
                 with open(config_path, 'r') as f:
-                    self.config = yaml.safe_load(f)
+                    loaded_config = yaml.safe_load(f)
+                    # Set GUI variables from loaded config
+                    self.use_entropy_var.set("Yes" if loaded_config.get('use_entropy', True) else "No")
+                    self.min_confidence_var.set(str(loaded_config.get('c_min', 0.96)))
+                    self.quorum_var.set(str(loaded_config.get('quorum', 0.5)))
             except Exception as e:
                 messagebox.showerror(
                     "Configuration Error",
@@ -83,11 +99,29 @@ class DeepTrajectoryClassifierApp:
                 "Configuration Error",
                 "config.yaml not found. Loading default configuration."
             )
-            self.config = dict(use_entropy = True,
-                               c_min = 0.96,
-                               ensemble_threshold = 0.5,
-                               overwrite = True)
+        self._set_config()
 
+    def _update_config_from_gui(self):
+        """Update self.config dictionary from GUI variables."""
+        try:
+            self._set_config()
+        except ValueError as e:
+            messagebox.showerror(
+                "Configuration Error",
+                f"Invalid configuration value:\n{str(e)}"
+            )
+            # Reset to defaults
+            self.use_entropy_var.set("Yes")
+            self.min_confidence_var.set("0.96")
+            self.quorum_var.set("3")
+            self.config = {
+                'use_entropy': True,
+                'c_min': 0.96,
+                'ensemble_threshold': 0.5,
+                'overwrite': True
+            }
+
+        self._set_status("Applied configuration")
 
     def _setup_styles(self):
         """Configure custom styles."""
@@ -118,6 +152,9 @@ class DeepTrajectoryClassifierApp:
 
         # --- INPUT FILE SECTION ---
         self._create_input_section(main_frame)
+
+        # --- CONFIGURATION SECTION ---
+        self._create_configuration_section(main_frame)
 
         # --- PROGRESS SECTION ---
         self._create_progress_section(main_frame)
@@ -242,6 +279,95 @@ class DeepTrajectoryClassifierApp:
         )
         self.file_info_label.grid(row=1, column=0, columnspan=3, sticky=tk.W, pady=(10, 0))
 
+    def _create_configuration_section(self, parent):
+        """Create configuration options section."""
+        config_frame = ttk.LabelFrame(
+            parent,
+            text="Configuration",
+            padding="15",
+            bootstyle="secondary"
+        )
+        config_frame.grid(row=4, column=0, sticky=(tk.W, tk.E), pady=(0, 20))
+        config_frame.columnconfigure(1, weight=1)
+
+        # Use Entropy option
+        ttk.Label(
+            config_frame,
+            text="Use Entropy:",
+            style='Info.TLabel'
+        ).grid(row=0, column=0, sticky=tk.W, pady=5)
+
+        entropy_combo = ttk.Combobox(
+            config_frame,
+            textvariable=self.use_entropy_var,
+            values=["Yes", "No"],
+            state="readonly",
+            width=15
+        )
+        entropy_combo.grid(row=0, column=1, sticky=tk.W, padx=(10, 0), pady=5)
+
+        # Minimum Confidence option
+        ttk.Label(
+            config_frame,
+            text="Minimum Confidence:",
+            style='Info.TLabel'
+        ).grid(row=1, column=0, sticky=tk.W, pady=5)
+
+        min_conf_entry = ttk.Entry(
+            config_frame,
+            textvariable=self.min_confidence_var,
+            width=15
+        )
+        min_conf_entry.grid(row=1, column=1, sticky=tk.W, padx=(10, 0), pady=5)
+
+        # Ensemble Abstention Threshold option
+        ttk.Label(
+            config_frame,
+            text="Minimum predictors (Quorum):",
+            style='Info.TLabel'
+        ).grid(row=2, column=0, sticky=tk.W, pady=5)
+
+        ensemble_combo = ttk.Combobox(
+            config_frame,
+            textvariable=self.quorum_var,
+            values=["1", "2", "3", "4", "5"],
+            state='readonly',
+            width=15
+        )
+        ensemble_combo.grid(row=2, column=1, sticky=tk.W, padx=(10, 0), pady=5)
+
+        # Apply button
+        self.apply_config_btn = ttk.Button(
+            config_frame,
+            text="Apply Configuration",
+            command=self._apply_configuration,
+            bootstyle="info-outline",
+            width=20,
+            state='disabled', # disabled until models are loaded
+        )
+        self.apply_config_btn.grid(row=3, column=0, columnspan=2, pady=(10, 0))
+
+    def _apply_configuration(self):
+        """Apply configuration changes."""
+        try:
+            # Validate and update config
+            self._update_config_from_gui()
+
+            # Update pipeline if it exists
+            if self.pipeline is not None:
+                self.pipeline._update_config(self.config)
+
+            self._set_status("Configuration updated successfully")
+            messagebox.showinfo(
+                "Configuration Updated",
+                "Configuration settings have been applied successfully."
+            )
+        except Exception as e:
+            messagebox.showerror(
+                "Configuration Error",
+                f"Failed to apply configuration:\n{str(e)}"
+            )
+
     def _create_progress_section(self, parent):
         """Create progress tracking section."""
         progress_frame = ttk.LabelFrame(
@@ -250,7 +376,7 @@ class DeepTrajectoryClassifierApp:
             padding="15",
             bootstyle="success"
         )
-        progress_frame.grid(row=4, column=0, sticky=(tk.W, tk.E), pady=(0, 20))
+        progress_frame.grid(row=5, column=0, sticky=(tk.W, tk.E), pady=(0, 20))
         progress_frame.columnconfigure(0, weight=1)
 
         # Progress message
@@ -283,7 +409,7 @@ class DeepTrajectoryClassifierApp:
     def _create_action_buttons(self, parent):
         """Create main action buttons."""
         button_frame = ttk.Frame(parent)
-        button_frame.grid(row=5, column=0, pady=(0, 20))
+        button_frame.grid(row=6, column=0, pady=(0, 20))
 
         # Classify button (large and prominent)
         self.classify_btn = ttk.Button(
@@ -310,7 +436,7 @@ class DeepTrajectoryClassifierApp:
     def _create_status_bar(self, parent):
         """Create status bar at bottom."""
         status_frame = ttk.Frame(parent, relief=tk.SUNKEN, borderwidth=1)
-        status_frame.grid(row=6, column=0, sticky=(tk.W, tk.E))
+        status_frame.grid(row=7, column=0, sticky=(tk.W, tk.E))
 
         self.status_bar_label = ttk.Label(
             status_frame,
@@ -392,9 +518,10 @@ class DeepTrajectoryClassifierApp:
             self._update_file_info(filename)
             self._set_status(f"Loaded: {Path(filename).name}")
 
-            # Enable classify button if models are loaded
+            # Enable classify and Apply configuration button if models are loaded
             if self.pipeline is not None:
                 self.classify_btn.config(state='normal')
+                self.apply_config_btn.config(state='normal')
 
     def _update_file_info(self, filepath: str):
         """Display information about selected file."""
@@ -404,6 +531,7 @@ class DeepTrajectoryClassifierApp:
             self.file_info_label.config(
                 text=f"{num_rows:,} rows × {num_cols} columns"
             )
+            self._set_status(f"Loaded: {filepath}")
         except Exception as e:
             self.file_info_label.config(text=f"⚠️ Could not read file: {str(e)}")
 
@@ -416,6 +544,11 @@ class DeepTrajectoryClassifierApp:
         if self.pipeline is None:
             messagebox.showerror("Models Not Loaded", "Models are still loading. Please wait.")
             return
+
+        # Update configuration before classification
+        self._update_config_from_gui()
+        if self.pipeline is not None:
+            self.pipeline._update_config(self.config)
 
         # Ask user where to save output
         output_file = filedialog.asksaveasfilename(

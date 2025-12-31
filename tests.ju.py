@@ -10,6 +10,9 @@ import pandas as pd
 # %%
 %run main_gui.py
 # %%
+df = pd.read_csv('data/dataset_OOD_hq_classified.csv')
+df['abstained'].mean() * 100
+# %%
 # TODO: create executable and test it
-# TODO: add icon
 # TODO: add documentation
+# %%

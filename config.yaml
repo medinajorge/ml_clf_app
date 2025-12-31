@@ -1,4 +1,4 @@
 use_entropy: true
 c_min: 0.96
-ensemble_threshold: 0.5
+quorum: 3
 overwrite: true

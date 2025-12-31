@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import mode as ss_mode
 import os
+from copy import deepcopy
 from typing import Optional, Callable
 from tkinter import ttk
 from ttkbootstrap import Window
@@ -67,15 +68,30 @@ class SpeciesClassifierPipeline():
                  config: dict,
                  progress_callback: Optional[Callable] = None,
                  ):
-        self.config = config
         self.progress_callback = progress_callback
 
-        self.clf_model = clf.InceptionClassifierEnsemble(progress_callback=self.progress_callback, percentages=[30, 45, 60, 75, 90])
-        self.conf_model = confidence.XGBEnsemble(use_entropy=config['use_entropy'])
-
+        self.config = config
         self.c_min = config['c_min']
         self.ensemble_threshold = config['ensemble_threshold']
         self.overwrite = config['overwrite']
+        self.use_entropy = config['use_entropy']
+
+        self.clf_model = clf.InceptionClassifierEnsemble(progress_callback=self.progress_callback, percentages=[30, 45, 60, 75, 90])
+        self.conf_model = confidence.XGBEnsemble(use_entropy=self.use_entropy)
+
+
+    def _update_config(self, config):
+        use_entropy_prev = deepcopy(self.use_entropy)
+
+        self.config.update(config)
+        self.c_min = config['c_min']
+        self.ensemble_threshold = config['ensemble_threshold']
+        self.overwrite = config['overwrite']
+        self.use_entropy = config['use_entropy']
+
+        if self.use_entropy != use_entropy_prev:
+            # Reload XGB model
+            self.conf_model = confidence.XGBEnsemble(use_entropy=self.use_entropy)
 
     def _update_progress(self, message: str, percentage: int):
         """Call progress callback if provided."""
