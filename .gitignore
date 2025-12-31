@@ -12,6 +12,8 @@ __pycache__/
 # Ignore data and figs folder
 data/
 figs/
+build/
+dist/
 assets/dmsc.png
 
 # ignore models and scalers
