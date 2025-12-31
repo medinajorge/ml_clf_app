@@ -38,6 +38,13 @@ class DeepTrajectoryClassifierApp:
         self.root.geometry("800x600")
         self.root.resizable(True, True)
 
+        # Set window icon
+        icon_path = Path('assets/dmsc_v1.png')
+        icon_img = Image.open(icon_path)
+        icon_photo = ImageTk.PhotoImage(icon_img)
+        self.root.iconphoto(True, icon_photo)
+        self.root._icon_photo = icon_photo
+
         # Set minimum window size
         self.root.minsize(700, 500)
 
