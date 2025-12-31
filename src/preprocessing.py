@@ -8,9 +8,40 @@ from pvlib import solarposition
 from typing import Optional, Callable, List
 from tkinter import messagebox
 
-from phdu import pd_utils
-
 from . import params
+
+def _ensure_df(dfs):
+    is_series = all(isinstance(df, pd.Series) for df in dfs)
+    dfs = [df.to_frame() if isinstance(df, pd.Series) else df for df in dfs]
+    return dfs, is_series
+
+def _revert_to_series(out, df_0):
+    if out.shape[0] == 1:
+        out = out.iloc[:, 0]
+        out.name = df_0.iloc[:, 0].name
+    else:
+        out = out.squeeze()
+    return out
+
+def tuple_wise(*dfs, check_index=True, check_columns=True):
+    """
+    Attributes: Dataframes with same indices and columns. If the input are Series, they are converted to DataFrames.
+
+    Returns dataframe where each element is a tuple containing the elements from other dataframes.
+    If the input were Series, the output is a Series.
+    """
+    dfs, is_series = _ensure_df(dfs)
+    df = dfs[0]
+    if check_index:
+        assert all(df.index.intersection(df2.index).size == df.shape[0] for df2 in dfs[1:]), "Indices do not match. To ignore this, set check_index=False."
+    if check_columns:
+        assert all(df.columns.intersection(df2.columns).size == df.shape[1] for df2 in dfs[1:]), "Columns do not match. To ignore this, set check_columns=False."
+    out = pd.DataFrame(np.rec.fromarrays(tuple(df.values for df in dfs)).tolist(),
+                       columns=df.columns,
+                       index=df.index)
+    if is_series:
+        out = _revert_to_series(out, df)
+    return out
 
 def get_leap_year(y):
     """Returns bool array. True if time data belongs to a leap year"""
@@ -112,7 +143,7 @@ def undersample_trajectories(df, year, dt_threshold=1/24):
     if not is_year_series:
         year = pd.Series(year, index=df.index)
     T = df.apply(lambda x: x[2])
-    T_year = pd_utils.tuple_wise(T.to_frame(), year.to_frame())
+    T_year = tuple_wise(T.to_frame(), year.to_frame())
     DT = T_year.map(lambda x: compute_dt(*x))
 
     @njit
@@ -135,9 +166,9 @@ def undersample_trajectories(df, year, dt_threshold=1/24):
         return np.array(idxs)
 
     idxs_undersampling = DT[0].apply(find_indices, dt_threshold=dt_threshold)
-    df_undersampling = pd_utils.tuple_wise(df.to_frame(), idxs_undersampling.to_frame())[0]
+    df_undersampling = tuple_wise(df.to_frame(), idxs_undersampling.to_frame())[0]
     df_undersampled = df_undersampling.apply(lambda x: x[0][:, x[1]])
-    year_undersampling = pd_utils.tuple_wise(year.to_frame(), idxs_undersampling.to_frame())[0]
+    year_undersampling = tuple_wise(year.to_frame(), idxs_undersampling.to_frame())[0]
     year_undersampled = year_undersampling.apply(lambda x: x[0][x[1]])
 
     if not is_year_series:

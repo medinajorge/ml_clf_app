@@ -10,8 +10,10 @@ import traceback
 from typing import Optional
 import mmap
 import csv
+import os
 
 from .pipeline import SpeciesClassifierPipeline
+from . import params
 
 def csv_shape_mmap(filepath, has_header=True):
     with open(filepath, "r", encoding="utf-8", newline="") as f:
@@ -38,7 +40,7 @@ class DeepTrajectoryClassifierApp:
         self.root.resizable(True, True)
 
         # Set window icon
-        icon_path = Path('assets/dmsc_v1.png')
+        icon_path = os.path.join(params.ASSETS_DIR, 'dmsc_v1.png')
         icon_img = Image.open(icon_path)
         icon_photo = ImageTk.PhotoImage(icon_img)
         self.root.iconphoto(True, icon_photo)
@@ -80,8 +82,8 @@ class DeepTrajectoryClassifierApp:
 
     def _load_config(self):
         """Load configuration file."""
-        config_path = Path('config.yaml')
-        if config_path.exists():
+        config_path = os.path.join(params.ROOT, 'config.yaml')
+        if os.path.exists(config_path):
             try:
                 with open(config_path, 'r') as f:
                     loaded_config = yaml.safe_load(f)
@@ -174,7 +176,7 @@ class DeepTrajectoryClassifierApp:
         about_window.resizable(True, True)
 
         # Set window icon (same as main window)
-        icon_path = Path('assets/dmsc_v1.png')
+        icon_path = os.path.join(params.ASSETS_DIR, 'dmsc_v1.png')
         icon_img = Image.open(icon_path)
         self._icon_photo = ImageTk.PhotoImage(icon_img)
         about_window.iconphoto(True, self._icon_photo)
@@ -227,6 +229,8 @@ class DeepTrajectoryClassifierApp:
         documentation = """OVERVIEW
 ========
 Deep Marine Species Classifier (DMSC) is a machine learning application designed to classify satellite data from marine animal species using deep learning models with confidence-based abstention.
+
+Github repository: https://github.com/medinajorge/ml_clf_app
 
 
 HOW TO USE
@@ -487,7 +491,7 @@ For support or questions, please refer to the documentation or contact the autho
         self.input_entry.grid(row=0, column=1, sticky=(tk.W, tk.E), padx=(0, 10))
 
         # Add data button
-        directory_img = Image.open('assets/directory-icon.png')
+        directory_img = Image.open(os.path.join(params.ASSETS_DIR, 'directory-icon.png'))
         directory_img = directory_img.resize((20, 20), Image.LANCZOS)
         self._directory_icon = ImageTk.PhotoImage(directory_img)
 
@@ -839,7 +843,7 @@ For support or questions, please refer to the documentation or contact the autho
         self.progress_bar['value'] = 100
         self.progress_percentage.config(text="100%")
 
-        check_img = Image.open("assets/check-icon.png")
+        check_img = Image.open(os.path.join(params.ASSETS_DIR, 'check-icon.png'))
         check_img = check_img.resize((20, 20), Image.LANCZOS)
         self._check_img = ImageTk.PhotoImage(check_img)
 

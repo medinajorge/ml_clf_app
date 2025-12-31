@@ -9,11 +9,15 @@ __pycache__/
 # ipynb checkpoints
 .ipynb_checkpoints/
 
+# Build files: Linux
+build/
+dist/
+DMSC.*
+*.AppImage
+
 # Ignore data and figs folder
 data/
 figs/
-build/
-dist/
 assets/dmsc.png
 
 # ignore models and scalers

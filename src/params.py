@@ -9,6 +9,7 @@ DATA_DIR: Path = Path(os.path.join(ROOT, 'data'))
 SCALER_DIR: Path = Path(os.path.join(_app_path, 'scaler'))
 CLF_MODEL_DIR: Path = Path(os.path.join(_app_path, 'clf_model'))
 CONF_MODEL_DIR: Path = Path(os.path.join(_app_path, 'conf_model'))
+ASSETS_DIR: Path = Path(os.path.join(ROOT, 'assets'))
 
 FEATURES = ['x', 'y', 'z', 'sin t', 'cos t', 'sin h', 'cos h', 'bathymetry', ' dt', 'v']
 FEATURES_SCALE = ['bathymetry', ' dt', 'v']
