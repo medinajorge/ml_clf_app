@@ -293,7 +293,7 @@ class DeepTrajectoryClassifierApp:
         # Use Entropy option
         ttk.Label(
             config_frame,
-            text="Use Entropy:",
+            text="Use entropy:",
             style='Info.TLabel'
         ).grid(row=0, column=0, sticky=tk.W, pady=5)
 
@@ -309,7 +309,7 @@ class DeepTrajectoryClassifierApp:
         # Minimum Confidence option
         ttk.Label(
             config_frame,
-            text="Minimum Confidence:",
+            text="Minimum confidence:",
             style='Info.TLabel'
         ).grid(row=1, column=0, sticky=tk.W, pady=5)
 
@@ -323,7 +323,7 @@ class DeepTrajectoryClassifierApp:
         # Ensemble Abstention Threshold option
         ttk.Label(
             config_frame,
-            text="Minimum predictors (Quorum):",
+            text="Minimum predictors (quorum):",
             style='Info.TLabel'
         ).grid(row=2, column=0, sticky=tk.W, pady=5)
 
