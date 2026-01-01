@@ -8,8 +8,8 @@ echo "Cleaning previous builds..."
 rm -rf DMSC.AppDir DMSC.AppImage
 
 # Build with PyInstaller
-# echo "Building with PyInstaller..."
-# pyinstaller app.spec --clean --noconfirm
+echo "Building with PyInstaller..."
+pyinstaller app.spec --clean --noconfirm
 
 # Create AppDir structure
 echo "Creating AppDir structure..."
