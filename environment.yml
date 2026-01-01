@@ -1,9 +1,8 @@
 name: tensor
 channels:
-  - defaults
   - anaconda
   - conda-forge
-  - nodefaults
+  - pkgs/main
 dependencies:
   - _libgcc_mutex=0.1=conda_forge
   - _openmp_mutex=4.5=2_kmp_llvm
@@ -19,6 +18,7 @@ dependencies:
   - brotli=1.0.9=h5eee18b_7
   - brotli-bin=1.0.9=h5eee18b_7
   - brotli-python=1.0.9=py310hd8f1fbe_8
+  - brotlicffi=1.0.9.2=py310hbdd6827_2
   - bzip2=1.0.8=h7b6447c_0
   - c-ares=1.19.1=hd590300_0
   - ca-certificates=2023.08.22=h06a4308_0
@@ -86,6 +86,7 @@ dependencies:
   - libbrotlidec=1.0.9=h5eee18b_7
   - libbrotlienc=1.0.9=h5eee18b_7
   - libcblas=3.9.0=12_linux64_mkl
+  - libclang=10.0.1=default_hb85057a_2
   - libcurl=8.1.1=h91b91d3_0
   - libdeflate=1.8=h7f8727e_5
   - libedit=3.1.20221030=h5eee18b_0
@@ -97,6 +98,7 @@ dependencies:
   - libgfortran5=13.1.0=h15d22d2_0
   - liblapack=3.9.0=12_linux64_mkl
   - libllvm10=10.0.1=hbcb73fb_5
+  - libllvm11=11.1.0=h9e868ea_6
   - libnetcdf=4.8.1=nompi_hb3fd0d9_101
   - libnghttp2=1.52.0=ha637b67_1
   - libpng=1.6.37=hbc83047_0
@@ -114,6 +116,7 @@ dependencies:
   - libxslt=1.1.35=h4e12654_0
   - libzip=1.8.0=h5cef20c_0
   - llvm-openmp=14.0.6=h9e868ea_0
+  - llvmlite=0.38.0=py310h4ff587b_0
   - lxml=4.9.1=py310h1edc446_0
   - lz4-c=1.9.4=h6a678d5_0
   - markupsafe=2.1.1=py310h7f8727e_0
@@ -137,12 +140,17 @@ dependencies:
   - notebook-shim=0.2.2=py310h06a4308_0
   - nspr=4.33=h295c915_0
   - nss=3.74=h0370c37_0
+  - numba=0.55.0=py310h00e6091_0
+  - numpy=1.24.3=py310hd5efca6_0
+  - numpy-base=1.24.3=py310h8e6c178_0
   - openssl=1.1.1w=h7f8727e_0
+  - packaging=25.0=py310h06a4308_1
   - pandocfilters=1.5.0=pyhd3eb1b0_0
   - parso=0.8.3=pyhd3eb1b0_0
   - pcre=8.45=h295c915_0
   - pexpect=4.8.0=pyhd3eb1b0_3
   - pickleshare=0.7.5=pyhd3eb1b0_1003
+  - pip=25.3=pyhc872135_0
   - platformdirs=2.5.2=py310h06a4308_0
   - plotly=5.17.0=pyhd8ed1ab_0
   - ply=3.11=py310h06a4308_0
@@ -153,9 +161,11 @@ dependencies:
   - ptyprocess=0.7.0=pyhd3eb1b0_2
   - pure_eval=0.2.2=pyhd3eb1b0_0
   - pycparser=2.21=pyhd3eb1b0_0
+  - pygments=2.19.2=py310h06a4308_0
   - pynndescent=0.5.10=pyh1a96a4e_0
   - pyparsing=3.0.9=py310h06a4308_0
   - pyqt=5.15.7=py310h6a678d5_1
+  - pyqt5-sip=12.11.0=py310h6a678d5_1
   - pyrsistent=0.18.0=py310h7f8727e_0
   - pysocks=1.7.1=pyha2e5f31_6
   - python=3.10.9=h7a1cb2a_0
@@ -165,7 +175,7 @@ dependencies:
   - python-louvain=0.16=pyhd8ed1ab_0
   - python-tzdata=2023.3=pyhd8ed1ab_0
   - python_abi=3.10=2_cp310
-  - pytz=2023.3=pyhd8ed1ab_0
+  - pytz=2023.3.post1=pyhd8ed1ab_0
   - pyyaml=6.0=py310h5eee18b_1
   - pyzmq=23.2.0=py310h6a678d5_0
   - qt-main=5.15.2=h327a75a_7
@@ -173,6 +183,8 @@ dependencies:
   - qtwebkit=5.212=h4eab89a_4
   - readline=8.2=h5eee18b_0
   - requests=2.31.0=pyhd8ed1ab_0
+  - scikit-learn=1.7.2=py310h505adc9_0
+  - scipy=1.10.1=py310hd5efca6_0
   - send2trash=1.8.0=pyhd3eb1b0_1
   - setuptools=65.6.3=py310h06a4308_0
   - sip=6.6.2=py310h6a678d5_0
@@ -191,7 +203,10 @@ dependencies:
   - tornado=6.2=py310h5eee18b_0
   - tqdm=4.66.1=pyhd8ed1ab_0
   - traitlets=5.7.1=py310h06a4308_0
+  - typing-extensions=4.15.0=py310h06a4308_0
+  - typing_extensions=4.15.0=py310h06a4308_0
   - tzdata=2022a=hda174b7_0
+  - urllib3=2.5.0=py310h06a4308_0
   - wcwidth=0.2.5=pyhd3eb1b0_0
   - webencodings=0.5.1=py310h06a4308_1
   - websocket-client=0.58.0=py310h06a4308_4
@@ -202,97 +217,127 @@ dependencies:
   - zlib=1.2.13=h5eee18b_0
   - zstd=1.5.2=ha4553b6_0
   - pip:
-      - absl-py==1.4.0
-      - alembic==1.15.2
-      - arviz==0.22.0
-      - astunparse==1.6.3
-      - cachetools==5.3.1
-      - cdsapi==0.7.7
-      - cloudpickle==2.2.1
-      - colorlog==6.9.0
-      - colour==0.1.5
-      - cons==0.4.7
-      - cvxopt==1.3.0
-      - ecmwf-datastores-client==0.4.1
-      - etuples==0.3.10
-      - filelock==3.18.0
-      - flatbuffers==25.2.10
-      - gast==0.4.0
-      - google-auth==2.22.0
-      - google-auth-oauthlib==1.0.0
-      - google-pasta==0.2.0
-      - grpcio==1.57.0
-      - h5netcdf==1.6.4
-      - h5py==3.13.0
-      - infomap==2.7.1
-      - ipywidgets==8.1.0
-      - jupyterlab-widgets==3.0.8
-      - keras==3.9.2
-      - libclang==16.0.6
-      - llvmlite==0.44.0
-      - logical-unification==0.4.6
-      - mako==1.3.10
-      - markdown==3.4.4
-      - markdown-it-py==3.0.0
-      - matplotlib==3.10.1
-      - mdurl==0.1.2
-      - minikanren==1.0.5
-      - ml-dtypes==0.5.1
-      - multipledispatch==1.0.0
-      - multiurl==0.3.7
-      - namex==0.0.8
-      - numba==0.61.2
-      - numpy==1.26.4
-      - nvidia-cublas-cu11==11.11.3.6
-      - nvidia-cuda-nvrtc-cu11==11.8.89
-      - nvidia-cudnn-cu11==8.9.4.25
-      - oauthlib==3.2.2
-      - opt-einsum==3.3.0
-      - optree==0.15.0
-      - optuna==4.2.1
-      - optuna-integration==4.2.1
-      - packaging==25.0
-      - pandas==2.2.3
-      - patsy==1.0.1
-      - phdu==3.0.3
-      - pillow==12.0.0
-      - pip==25.0.1
-      - protobuf==4.24.4
-      - pvlib==0.12.0
-      - pyarrow==22.0.0
-      - pyasn1==0.5.0
-      - pyasn1-modules==0.3.0
-      - pygments==2.19.1
-      - pymc==5.25.1
-      - pyqt5-sip==12.11.0
-      - pytensor==2.31.7
-      - requests-oauthlib==1.3.1
-      - rich==14.0.0
-      - rsa==4.9
-      - scikit-learn==1.6.1
-      - scipy==1.15.2
-      - seaborn==0.13.2
-      - shap==0.47.1
-      - slicer==0.0.8
-      - sqlalchemy==2.0.40
-      - statsmodels==0.14.5
-      - tensorboard==2.19.0
-      - tensorboard-data-server==0.7.1
-      - tensorboard-plugin-wit==1.8.1
-      - tensorflow==2.19.0
-      - tensorflow-estimator==2.13.0
-      - tensorflow-io-gcs-filesystem==0.33.0
-      - termcolor==2.3.0
-      - tidypath==1.5.2
-      - toolz==1.0.0
-      - ttkbootstrap==1.19.2
-      - typing-extensions==4.13.1
-      - umap-learn==0.5.7
-      - urllib3==1.26.16
-      - werkzeug==2.3.7
-      - widgetsnbextension==4.0.8
-      - wrapt==1.15.0
-      - xarray==2025.6.1
-      - xarray-einstats==0.8.0
-      - xgboost==1.7.6
-prefix: /home/jorgemedina/anaconda3/envs/tensor
+    - GitPython==3.1.31
+    - Mako==1.3.10
+    - Markdown==3.4.4
+    - Pygments==2.19.1
+    - SQLAlchemy==2.0.40
+    - Werkzeug==2.3.7
+    - absl-py==1.4.0
+    - alembic==1.15.2
+    - altgraph==0.17.5
+    - arviz==0.22.0
+    - astunparse==1.6.3
+    - async-generator==1.10
+    - attrs==23.1.0
+    - cachetools==5.3.1
+    - cdsapi==0.7.7
+    - cloudpickle==2.2.1
+    - coloredlogs==15.0.1
+    - colorlog==6.9.0
+    - colour==0.1.5
+    - cons==0.4.7
+    - cvxopt==1.3.0
+    - docopt==0.6.2
+    - ecmwf-datastores-client==0.4.1
+    - etuples==0.3.10
+    - exceptiongroup==1.1.1
+    - filelock==3.18.0
+    - flatbuffers==25.2.10
+    - gast==0.4.0
+    - gitdb==4.0.10
+    - google-auth==2.22.0
+    - google-auth-oauthlib==1.0.0
+    - google-pasta==0.2.0
+    - greenlet==3.3.0
+    - grpcio==1.57.0
+    - h11==0.16.0
+    - h5netcdf==1.6.4
+    - h5py==3.13.0
+    - humanfriendly==10.0
+    - infomap==2.7.1
+    - ipython==8.12.3
+    - ipywidgets==8.1.0
+    - jupynium==0.2.7+2.g4638113
+    - jupyterlab-widgets==3.0.8
+    - keras==3.9.2
+    - libclang==16.0.6
+    - llvmlite==0.44.0
+    - logical-unification==0.4.6
+    - markdown-it-py==3.0.0
+    - matplotlib==3.10.1
+    - mdurl==0.1.2
+    - miniKanren==1.0.5
+    - mistune==3.2.0
+    - ml_dtypes==0.5.1
+    - msgpack==1.0.5
+    - multipledispatch==1.0.0
+    - multiurl==0.3.7
+    - namex==0.0.8
+    - nbconvert==7.16.6
+    - numba==0.61.2
+    - numpy==1.26.4
+    - nvidia-cublas-cu11==11.11.3.6
+    - nvidia-cuda-nvrtc-cu11==11.8.89
+    - nvidia-cudnn-cu11==8.9.4.25
+    - oauthlib==3.2.2
+    - opt-einsum==3.3.0
+    - optree==0.15.0
+    - optuna==4.2.1
+    - optuna-integration==4.2.1
+    - outcome==1.2.0
+    - pandas==2.2.3
+    - patsy==1.0.1
+    - persist-queue==0.8.1
+    - phdu==3.0.3
+    - pillow==12.0.0
+    - pip==25.3
+    - pipreqs==0.5.0
+    - platformdirs==4.1.0
+    - protobuf==4.24.4
+    - psutil==5.9.5
+    - pvlib==0.12.0
+    - pyarrow==22.0.0
+    - pyasn1==0.5.0
+    - pyasn1-modules==0.3.0
+    - pyinstaller==6.17.0
+    - pyinstaller-hooks-contrib==2025.11
+    - pymc==5.25.1
+    - pynvim==0.6.0
+    - pytensor==2.31.7
+    - requests-oauthlib==1.3.1
+    - rich==14.0.0
+    - rsa==4.9
+    - scikit-learn==1.6.1
+    - scipy==1.15.2
+    - seaborn==0.13.2
+    - selenium==4.10.0
+    - shap==0.47.1
+    - slicer==0.0.8
+    - smmap==5.0.0
+    - sniffio==1.3.0
+    - sortedcontainers==2.4.0
+    - statsmodels==0.14.5
+    - tensorboard==2.19.0
+    - tensorboard-data-server==0.7.1
+    - tensorboard-plugin-wit==1.8.1
+    - tensorflow==2.19.0
+    - tensorflow-estimator==2.13.0
+    - tensorflow-io-gcs-filesystem==0.33.0
+    - termcolor==2.3.0
+    - tidypath==1.5.2
+    - toolz==1.0.0
+    - trio==0.22.0
+    - trio-websocket==0.10.3
+    - ttkbootstrap==1.19.2
+    - typing_extensions==4.13.1
+    - umap-learn==0.5.7
+    - urllib3==1.26.16
+    - verboselogs==1.7
+    - widgetsnbextension==4.0.8
+    - wrapt==1.15.0
+    - wsproto==1.2.0
+    - xarray==2025.6.1
+    - xarray-einstats==0.8.0
+    - xgboost==1.7.6
+    - yarg==0.1.9
