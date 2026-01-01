@@ -2,11 +2,13 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 import ttkbootstrap as ttkb
 from ttkbootstrap.constants import *
+from ttkbootstrap.scrolled import ScrolledFrame
 from PIL import Image, ImageTk
 import threading
 import yaml
 from pathlib import Path
 import traceback
+import platform
 from typing import Optional
 import mmap
 import csv
@@ -43,13 +45,16 @@ class DeepTrajectoryClassifierApp:
         icon_path = os.path.join(params.ASSETS_DIR, 'dmsc_v1.png')
         icon_photo = Image.open(icon_path)
         self._icon_photo_small = ImageTk.PhotoImage(icon_photo.resize((20, 20), Image.LANCZOS))
-        self._icon_photo_mid = ImageTk.PhotoImage(icon_photo.resize((60, 60), Image.LANCZOS))
+        self._icon_photo_mid = ImageTk.PhotoImage(icon_photo.resize((80, 80), Image.LANCZOS))
         self._icon_photo = ImageTk.PhotoImage(icon_photo)
         self.root.iconphoto(True, self._icon_photo)
         self.root._icon_photo = self._icon_photo
 
         # Set minimum window size
         self.root.minsize(700, 550)
+
+        # Maximize window
+        self._maximize_window()
 
         # Variables
         self.input_file_path = tk.StringVar()
@@ -73,6 +78,14 @@ class DeepTrajectoryClassifierApp:
 
         # Load models on startup (in background)
         self._load_models_background()
+
+    def _maximize_window(self):
+        """Maximize window in a cross-platform way."""
+        system = platform.system()
+        if system == 'Windows':
+            self.root.state('zoomed')
+        else:  # Linux/Unix
+            self.root.attributes('-zoomed', True)
 
     def _set_config(self):
         self.config = {
@@ -139,14 +152,15 @@ class DeepTrajectoryClassifierApp:
         style.configure('Status.TLabel', font=('Helvetica', params.FONTSIZE_STATUS))
 
     def _create_widgets(self):
-        """Create all GUI widgets."""
-        # Main container with padding
-        main_frame = ttk.Frame(self.root, padding="20")
-        main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        """Create all GUI widgets with scrollbar."""
+        # Create scrolled frame
+        scrolled = ScrolledFrame(self.root, autohide=True)
+        scrolled.pack(fill="both", expand=True)
 
-        # Configure grid weights for responsive design
-        self.root.columnconfigure(0, weight=1)
-        self.root.rowconfigure(0, weight=1)
+        # Main container with padding
+        main_frame = ttk.Frame(scrolled, padding="10")
+        main_frame.pack(fill="both", expand=True)
+
         main_frame.columnconfigure(0, weight=1)
 
         # --- HEADER SECTION ---
@@ -397,13 +411,11 @@ For support or questions, please refer to the documentation or contact the autho
         help_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Help", menu=help_menu)
         help_menu.add_command(label="About", command=self._create_about_section)
-        # help_menu.add_separator()
-        # help_menu.add_command(label="Documentation", command=self._create_about_section)
 
     def _create_header(self, parent):
         """Create header section with title."""
         header_frame = ttk.Frame(parent)
-        header_frame.grid(row=0, column=0, sticky=(tk.W, tk.E), pady=(0, 20))
+        header_frame.grid(row=0, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
 
         # Author
         header_frame.columnconfigure(2, weight=1)
@@ -414,7 +426,7 @@ For support or questions, please refer to the documentation or contact the autho
             style='Info.TLabel',
             bootstyle="secondary",
         )
-        author_label.grid(row=0, column=2, sticky=tk.E)
+        author_label.grid(row=0, column=2, sticky=tk.E, padx=(0, 10))
 
         # Title
         title_label = ttk.Label(
@@ -439,7 +451,7 @@ For support or questions, please refer to the documentation or contact the autho
             bootstyle="primary-inverse"
         )
         version_label.pack()
-        version_frame.grid(row=0, column=2, sticky=tk.W, padx=(8, 0))
+        version_frame.grid(row=0, column=2, sticky=tk.W, padx=(10, 0))
 
         # Separator
         separator = ttk.Separator(parent, orient='horizontal')
@@ -587,7 +599,7 @@ For support or questions, please refer to the documentation or contact the autho
             width=20,
             state='disabled', # disabled until models are loaded
         )
-        self.apply_config_btn.grid(row=3, column=0, columnspan=2, pady=(10, 0))
+        self.apply_config_btn.grid(row=2, column=0, columnspan=2, pady=(10, 0))
 
     def _apply_configuration(self):
         """Apply configuration changes."""
