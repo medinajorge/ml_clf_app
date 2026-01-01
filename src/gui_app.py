@@ -41,10 +41,12 @@ class DeepTrajectoryClassifierApp:
 
         # Set window icon
         icon_path = os.path.join(params.ASSETS_DIR, 'dmsc_v1.png')
-        icon_img = Image.open(icon_path)
-        icon_photo = ImageTk.PhotoImage(icon_img)
-        self.root.iconphoto(True, icon_photo)
-        self.root._icon_photo = icon_photo
+        icon_photo = Image.open(icon_path)
+        self._icon_photo_small = ImageTk.PhotoImage(icon_photo.resize((20, 20), Image.LANCZOS))
+        self._icon_photo_mid = ImageTk.PhotoImage(icon_photo.resize((60, 60), Image.LANCZOS))
+        self._icon_photo = ImageTk.PhotoImage(icon_photo)
+        self.root.iconphoto(True, self._icon_photo)
+        self.root._icon_photo = self._icon_photo
 
         # Set minimum window size
         self.root.minsize(700, 550)
@@ -131,10 +133,10 @@ class DeepTrajectoryClassifierApp:
         style = ttkb.Style()
 
         # Configure custom button styles
-        style.configure('Action.TButton', font=('Helvetica', 11, 'bold'))
-        style.configure('Info.TLabel', font=('Helvetica', 10))
-        style.configure('Title.TLabel', font=('Helvetica', 16, 'bold'))
-        style.configure('Status.TLabel', font=('Helvetica', 9))
+        style.configure('Action.TButton', font=('Helvetica', params.FONTSIZE_BUTTON, 'bold'))
+        style.configure('Info.TLabel', font=('Helvetica', params.FONTSIZE_INFO))
+        style.configure('Title.TLabel', font=('Helvetica', params.FONTSIZE_TITLE, 'bold'))
+        style.configure('Status.TLabel', font=('Helvetica', params.FONTSIZE_STATUS))
 
     def _create_widgets(self):
         """Create all GUI widgets."""
@@ -176,9 +178,6 @@ class DeepTrajectoryClassifierApp:
         about_window.resizable(True, True)
 
         # Set window icon (same as main window)
-        icon_path = os.path.join(params.ASSETS_DIR, 'dmsc_v1.png')
-        icon_img = Image.open(icon_path)
-        self._icon_photo = ImageTk.PhotoImage(icon_img)
         about_window.iconphoto(True, self._icon_photo)
 
         # Main frame with padding
@@ -218,7 +217,7 @@ class DeepTrajectoryClassifierApp:
             text_frame,
             wrap=tk.WORD,
             yscrollcommand=scrollbar.set,
-            font=('Helvetica', 10),
+            font=('Helvetica', params.FONTSIZE_INFO),
             padx=10,
             pady=10
         )
@@ -426,14 +425,21 @@ For support or questions, please refer to the documentation or contact the autho
         )
         title_label.grid(row=0, column=0, sticky=tk.W)
 
-        # Version
+        # Logo/Icon
+        icon_label = ttk.Label(header_frame, image=self._icon_photo_mid)
+        icon_label.grid(row=0, column=0, padx=(0, 10))
+        title_label.grid(row=0, column=1, sticky=tk.W)  # Adjust column
+
+        # Version badge with background
+        version_frame = ttk.Frame(header_frame, bootstyle="primary")
         version_label = ttk.Label(
-            header_frame,
+            version_frame,
             text="v1.0",
-            style='Info.TLabel',
-            bootstyle="secondary"
+            padding=(4, 2),
+            bootstyle="primary-inverse"
         )
-        version_label.grid(row=0, column=1, sticky=tk.W, padx=(10, 0))
+        version_label.pack()
+        version_frame.grid(row=0, column=2, sticky=tk.W, padx=(8, 0))
 
         # Separator
         separator = ttk.Separator(parent, orient='horizontal')
@@ -443,7 +449,7 @@ For support or questions, please refer to the documentation or contact the autho
         """Create model loading status section."""
         status_frame = ttk.LabelFrame(
             parent,
-            text="Model Status",
+            text=" Model Status ",
             padding="15",
             bootstyle="info"
         )
@@ -467,7 +473,7 @@ For support or questions, please refer to the documentation or contact the autho
         """Create input file selection section."""
         input_frame = ttk.LabelFrame(
             parent,
-            text="Input Data",
+            text=" Input Data ",
             padding="15",
             bootstyle="primary"
         )
@@ -519,7 +525,7 @@ For support or questions, please refer to the documentation or contact the autho
         """Create configuration options section."""
         config_frame = ttk.LabelFrame(
             parent,
-            text="Configuration",
+            text=" Configuration ",
             padding="15",
             bootstyle="secondary"
         )
@@ -608,7 +614,7 @@ For support or questions, please refer to the documentation or contact the autho
         """Create progress tracking section."""
         progress_frame = ttk.LabelFrame(
             parent,
-            text="Processing Status",
+            text=" Processing Status ",
             padding="15",
             bootstyle="success"
         )
@@ -736,7 +742,7 @@ For support or questions, please refer to the documentation or contact the autho
 
     def _on_models_failed(self, error_msg: str):
         """Called when model loading fails."""
-        self.model_status_label.config(text="❌ Failed to load models")
+        self.model_status_label.config(text="Failed to load models")
         self._set_status("Error: Models failed to load")
 
         messagebox.showerror("Model Loading Error", error_msg)

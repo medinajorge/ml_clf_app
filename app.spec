@@ -163,7 +163,7 @@ coll = COLLECT(
     a.binaries,
     a.zipfiles,
     a.datas,
-    strip=False, # change to True for smaller file size
+    strip=True, # change to True for smaller file size
     upx=True,
     upx_exclude=[],
     name='DMSC',

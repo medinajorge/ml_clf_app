@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+# PATH
 _app_path = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(_app_path)
 BATHYMETRY_PATH: Path = Path(os.path.join(_app_path, 'data/BathymetryData.dat'))
@@ -11,6 +12,7 @@ CLF_MODEL_DIR: Path = Path(os.path.join(_app_path, 'clf_model'))
 CONF_MODEL_DIR: Path = Path(os.path.join(_app_path, 'conf_model'))
 ASSETS_DIR: Path = Path(os.path.join(ROOT, 'assets'))
 
+# MODEL
 FEATURES = ['x', 'y', 'z', 'sin t', 'cos t', 'sin h', 'cos h', 'bathymetry', ' dt', 'v']
 FEATURES_SCALE = ['bathymetry', ' dt', 'v']
 NUM_FEATURES_SCALE = 3
@@ -92,3 +94,10 @@ CATEGORY_TO_SPECIES = {0: 'Adelie penguin',
                        72: 'White shark',
                        73: 'White-tailed tropic bird',
                        }
+
+
+# GUI APP
+FONTSIZE_BUTTON = 11
+FONTSIZE_INFO = 30
+FONTSIZE_TITLE = 36
+FONTSIZE_STATUS = 18
