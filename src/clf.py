@@ -125,7 +125,7 @@ class InceptionClassifier():
             Array of shape (N, C) with class probabilities.
         """
         Z = self.preprocess(X)
-        logits = self.model.predict(Z)
+        logits = self.model.predict(Z, verbose=0)
         p = tf.nn.softmax(logits).numpy()
         return p
 
