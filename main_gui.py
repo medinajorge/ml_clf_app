@@ -5,10 +5,17 @@ Main entry point for the graphical user interface.
 """
 
 import sys
-import tkinter as tk
 from tkinter import messagebox
 import ttkbootstrap as ttkb
 from pathlib import Path
+
+# Fix for PyInstaller with console=False
+if getattr(sys, 'frozen', False):
+    import io
+    if sys.stdout is None:
+        sys.stdout = io.StringIO()
+    if sys.stderr is None:
+        sys.stderr = io.StringIO()
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent))
