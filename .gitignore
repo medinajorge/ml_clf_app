@@ -9,7 +9,7 @@ __pycache__/
 # ipynb checkpoints
 .ipynb_checkpoints/
 
-# Build files: Linux
+# Build files: Linux and Windows
 build/
 dist/
 DMSC.*
