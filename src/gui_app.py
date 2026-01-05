@@ -37,7 +37,7 @@ def csv_shape_mmap(filepath, has_header=True):
 class DeepTrajectoryClassifierApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Deep Trajectory Classifier v1.0")
+        self.root.title("Deep Marine Species Classifier v1.0")
         self.root.geometry("800x650")
         self.root.resizable(True, True)
 

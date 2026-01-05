@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Deep Trajectory Classifier - GUI Application
+Deep Marine Species Classifier - GUI Application
 Main entry point for the graphical user interface.
 """
 
