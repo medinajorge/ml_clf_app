@@ -5,7 +5,9 @@
 
 ## Overview
 
-Deep Marine Species Classifier (DMSC) is a desktop application that classifies marine-animal satellite trajectories using an ensemble of deep learning models with confidence-based abstention. It is designed to deliver high accuracy for in-distribution species (present in the train set) while abstaining from classifying out-of-distribution species. The code for training the models and conducting the analyses presented in the article ***Machine Learning Based Species Classification in Marine Environments*** will be added to the [GitHub repository](https://github.com/medinajorge/Marine-species-identification) upon publication.
+Deep Marine Species Classifier (DMSC) is a desktop application that classifies marine-animal satellite trajectories using an ensemble of deep learning models with confidence-based abstention. It is designed to deliver high accuracy for in-distribution species (present in the train set) while abstaining from classifying out-of-distribution species. 
+
+The code for training the models and conducting the analyses presented in the article ***Machine Learning Based Species Classification in Marine Environments*** will be added to the [GitHub repository](https://github.com/medinajorge/Marine-species-identification) upon publication.
 
 
 <p align="center">
